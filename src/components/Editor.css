@@ -1,0 +1,20 @@
+.confidence-high {
+    background-color:transparent; /*rgba(0, 255, 0, 0.2);*/
+  }
+  
+  .confidence-medium {
+    background-color: rgba(255, 255, 0, 0.2);
+  }
+  
+  .confidence-low {
+    background-color: rgba(255, 0, 0, 0.2);
+  }
+  .current-word{
+    background-color: rgba(0, 255, 0, 0.2);
+  }
+
+  .confidence-hidden .confidence-high,
+  .confidence-hidden .confidence-medium,
+  .confidence-hidden .confidence-low {
+    background-color: transparent;
+  }
