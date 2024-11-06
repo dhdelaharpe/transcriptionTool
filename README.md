@@ -1,4 +1,4 @@
-# Project Name
+# Transcription tool
 
 ## Overview
 This project is a transcription and document export application built with Electron and React. It allows users to transcribe audio files and export the content as DOCX documents.
