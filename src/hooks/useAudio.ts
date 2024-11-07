@@ -16,6 +16,7 @@ interface AudioState {
  */
 export const useAudio = (audioUrl: string | null) => {
   const [sound, setSound] = useState<Howl | null>(null);
+  const soundRef = useRef<Howl | null>(null); //solve tracking issues with current sound instance for cleanup
   const [state, setState] = useState<AudioState>({
     isPlaying: false,
     currentTime: 0,
@@ -30,7 +31,7 @@ export const useAudio = (audioUrl: string | null) => {
   // cleanup function
   const cleanupInterval = useCallback(() => {
     if (intervalRef.current) {
-      // Cast to number since NodeJS.Timer is not directly compatible with clearInterval
+      // cast to number since NodeJS.Timer is not directly compatible with clearInterval
       clearInterval(intervalRef.current as unknown as number);
       intervalRef.current = undefined;
     }
@@ -125,7 +126,7 @@ export const useAudio = (audioUrl: string | null) => {
             }));
           },
         });
-
+        soundRef.current = newSound;
         setSound(newSound);
       } catch (error) {
         console.error("Error loading audio:", error);
@@ -145,8 +146,9 @@ export const useAudio = (audioUrl: string | null) => {
     return () => {
       isMounted = false;
       cleanupInterval();
-      if (sound) {
-        sound.unload();
+      if (soundRef.current) {
+        soundRef.current.unload();
+        soundRef.current = null;
       }
     };
   }, [audioUrl, cleanupInterval]);

@@ -20,8 +20,8 @@ export const processTranscriptionData = (
   if (!data.transcription || !Array.isArray(data.transcription)) {
     throw new Error("Invalid Transcription Data");
   }
-  
-  //map over each segment 
+  console.log(data);
+  //map over each segment
   const processedContent = data.transcription.map((segment) => {
     //split segment text into words and filter out empty strings
     const words = segment.text.split(" ").filter((word) => word !== "");
@@ -31,11 +31,11 @@ export const processTranscriptionData = (
     //process each word
     words.forEach((word) => {
       const wordTokens: Token[] = [];
-      let wordConfidence = 0;
+      let wordConfidence: number = 0;
       let wordOffsetFrom: number | null = null; //initialize to null for calculation
-      let wordOffsetTo = 0;
-      let tokenText = "";
-        //match tokens to the current word
+      let wordOffsetTo: number = 0;
+      let tokenText: string = "";
+      //match tokens to the current word
       while (tokenIndex < tokens.length) {
         const token = tokens[tokenIndex];
         if (token.text === "[_BEG_]" || /^\[_TT_\d+\]$/.test(token.text)) {
@@ -45,16 +45,18 @@ export const processTranscriptionData = (
         }
         tokenText += token.text;
         if (tokenText.trim() === word) {
-            //if token text matches word, finalize the word
+          //if token text matches word, finalize the word
           wordTokens.push(token);
           wordConfidence += token.p;
           wordOffsetFrom =
-            wordOffsetFrom === null ? token.offsets.from : wordOffsetFrom;
+            wordOffsetFrom === null
+              ? wordTokens[0]?.offsets.from // take the first token's offset
+              : wordOffsetFrom;
           wordOffsetTo = token.offsets.to;
           tokenIndex++;
           break;
         } else {
-            //accumulate tokens until word is matched
+          //accumulate tokens until word is matched
           wordTokens.push(token);
           wordConfidence += token.p;
           wordOffsetTo = token.offsets.to;
@@ -62,11 +64,13 @@ export const processTranscriptionData = (
         }
       }
       //calculate average confidence for the word
-      wordConfidence = wordConfidence / wordTokens.length;
+      wordConfidence = parseFloat(
+        (wordConfidence / wordTokens.length).toFixed(2)
+      );
       consolidated.push({
         text: word,
         confidence: wordConfidence,
-        offsets: { from: wordOffsetFrom!, to: wordOffsetTo },
+        offsets: { from: wordOffsetFrom, to: wordOffsetTo },
         tokens: wordTokens,
       });
     });
@@ -95,7 +99,6 @@ export const processTranscriptionData = (
 
     // return consolidated words for processing elsewhere
     return consolidated;
-
   });
   return processedContent;
 };

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import useAppStore from "@/store/useAppStore";
+import useAppStore from "../store/useAppStore";
 
 import { selectTranscriptionData } from "@/store/selectors";
 import { processTranscriptionData } from "@/utils/transcriptionRenderer";
