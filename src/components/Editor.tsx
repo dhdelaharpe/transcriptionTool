@@ -5,7 +5,7 @@ import { WordMark } from "./extensions/WordMark";
 import Underline from "@tiptap/extension-underline";
 import Typography from "@tiptap/extension-typography";
 import TextAlign from "@tiptap/extension-text-align";
-import OrderedList from "@tiptap/extension-ordered-list";
+import ListKeymap from "@tiptap/extension-list-keymap";
 import Subscript from "@tiptap/extension-subscript";
 import React, { useEffect } from "react";
 import { processTranscriptionData } from "../utils/transcriptionRenderer";
@@ -48,7 +48,7 @@ const Editor = ({ content = "", onChange, showConfidence }: EditorProps) => {
         alignments:['left','right','justify'],
         types:['heading','paragraph','wordMark']
       }),
-      
+      ListKeymap,
       Subscript
     ],
     content,
@@ -60,6 +60,21 @@ const Editor = ({ content = "", onChange, showConfidence }: EditorProps) => {
       const jsonContent = editor.getJSON();
       localStorage.setItem("editorContent", JSON.stringify(jsonContent));
     },
+    editorProps:{
+      //handle tab key to sink and lift list items
+      handleKeyDown(view,event){
+        if(event.key==='Tab'){
+          event.preventDefault();
+          if(event.shiftKey){
+            editor.commands.liftListItem('listItem')
+            return true;
+          }
+          editor.commands.sinkListItem('listItem')
+          return true;
+        }
+        return false;
+      }
+    }
   });
   /**
    * Handles the editor instance to set the editor in the app store

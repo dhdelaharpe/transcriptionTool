@@ -111,12 +111,12 @@ const FormattingToolbar = () => {
       />
       <FormatButton 
       format="align-left"
-      icon="<-"
+      icon="<"
       onClick={()=> handleFormat('align-left')}
       />
       <FormatButton
       format="align-right"
-      icon="->"
+      icon=">"
       onClick={()=>handleFormat('align-right')}
       />
       <FormatButton
