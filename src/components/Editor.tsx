@@ -6,6 +6,7 @@ import Underline from "@tiptap/extension-underline";
 import Typography from "@tiptap/extension-typography";
 import TextAlign from "@tiptap/extension-text-align";
 import OrderedList from "@tiptap/extension-ordered-list";
+import Subscript from "@tiptap/extension-subscript";
 import React, { useEffect } from "react";
 import { processTranscriptionData } from "../utils/transcriptionRenderer";
 import useAppStore from "../store/useAppStore";
@@ -43,8 +44,12 @@ const Editor = ({ content = "", onChange, showConfidence }: EditorProps) => {
       Superscript,
       WordMark,
       Typography,
-      TextAlign,
-      OrderedList,
+      TextAlign.configure({
+        alignments:['left','right','justify'],
+        types:['heading','paragraph','wordMark']
+      }),
+      
+      Subscript
     ],
     content,
     /**
