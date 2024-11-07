@@ -6,13 +6,13 @@ This project is a transcription application built with Electron. It is a persona
 ### Process
 The application allows importing an DS2 audio file, which then gets copied into /input_files. A python executable built from transcribe.py + utils.py handles file conversion calling switch (+wine if needed). The file is then run through ffmpeg to fit the recomendations for whispercpp and saved in /output_files. [whispercpp](https://github.com/ggerganov/whisper.cpp) is called against this with whichever models have been selected in the application controls to create a .json output (gpu availability is checked and the call is modified accordingly). This is processed by the application to render the transcription in the editor and loaded into a basic Howler.js audio player. 
 
-###Editor 
--built with [tiptap](https://tiptap.dev/)
--uses a custom wordMark extension to track the data from the json file
--provides a toggle to show confidence on each word 
--includes timestamping which allows word highlighting + selection to run alongside the audio playback -- so that the user can spot any mistakes by whispercpp and correct them in the editor. 
--includes basic editing features (undo, redo, text formatting, numbering etc) + a restore feature to return to last saved state (uses localstorage to save the editor state) -> TODO: reload the audio file upon restore. 
--allows exporting the editor content as a DOCX file according to templates. 
+### Editor 
+- built with [tiptap](https://tiptap.dev/)
+- uses a custom wordMark extension to track the data from the json file
+- provides a toggle to show confidence on each word 
+- includes timestamping which allows word highlighting + selection to run alongside the audio playback -- so that the user can spot any mistakes by whispercpp and correct them in the editor. 
+- includes basic editing features (undo, redo, text formatting, numbering etc) + a restore feature to return to last saved state (uses localstorage to save the editor state) -> TODO: reload the audio file upon restore. 
+- allows exporting the editor content as a DOCX file according to templates. 
 
 
 ## Installation
@@ -21,8 +21,8 @@ The application allows importing an DS2 audio file, which then gets copied into 
 
 - **Node.js:** 
 - **Python:** 
-- **FFMPEG:**
-- **switch:** or your preferred audio conversion tool (edit transcribe.py/utils.py to reflect this)
+- **[FFMPEG](https://ffmpeg.org/):**
+- **[switch](https://www.nch.com.au/switch):** or your preferred audio conversion tool (edit transcribe.py / utils.py to reflect this)
 
 
 1. Clone the repository
