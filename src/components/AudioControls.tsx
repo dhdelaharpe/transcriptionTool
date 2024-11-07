@@ -1,7 +1,7 @@
 import useAppStore from "@/store/useAppStore";
 import React, { memo, useEffect, useState } from "react";
-import { useAudio } from "@/hooks/useAudio";
 import { updateWordHighlights } from "@/hooks/wordHighlights";
+import { useAudio } from "@/hooks/useAudio"; 
 
 const formatTime = (seconds: number): string => {
   const minutes = Math.floor(seconds / 60);

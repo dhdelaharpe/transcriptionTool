@@ -90,6 +90,7 @@ const Editor = ({ content = "", onChange, showConfidence }: EditorProps) => {
   useEffect(() => {
     if (!transcriptionData) return;
     try {
+      editor.commands.setContent('');
       processTranscriptionData(transcriptionData, editor); //render transcription data
     } catch (error) {
       console.error("Error processing transcription data", error);
