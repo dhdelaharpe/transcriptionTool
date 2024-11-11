@@ -19,8 +19,27 @@ const AudioControls: React.FC = ():JSX.Element => {
   >(null); // number+nodejstimeout for diff environments
   const editor = useAppStore((state) => state.editor);
   const { audioFile, transcriptionData } = useAppStore();
-  const { isPlaying, currentTime, duration, isLoaded, error, controls } =
+  const {rate, isPlaying, currentTime, duration, isLoaded, error, controls } =
     useAudio(audioFile);
+
+/**
+ * Handles key events for the audio controls
+ */
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if(event.key==='F2'){
+        const newRate = rate+0.25;
+        controls.rate(newRate);
+      }else if(event.key==='F1'){
+        const newRate = rate-0.25;
+        controls.rate(newRate);
+      }
+    }
+    window.addEventListener('keydown',handleKeyDown);
+    return () => window.removeEventListener('keydown',handleKeyDown);
+  },[rate,controls])
+
   /**
    * Handles the play/pause button click
    */
@@ -36,7 +55,6 @@ const AudioControls: React.FC = ():JSX.Element => {
    */
   useEffect(() => {
     if (isPlaying && editor && transcriptionData) {
-      console.log("updating highlights", currentTime, editor);
       updateWordHighlights(currentTime * 1000, editor);
     }
   }, [isPlaying, currentTime]);
@@ -56,7 +74,7 @@ const AudioControls: React.FC = ():JSX.Element => {
 
       <div className="flex items-center justify-between mb-2">
         <span className="text-sm text-gray-600">{formatTime(currentTime)}</span>
-        <span className="text-sm text-gray-600">/</span>
+        <span className="text-sm text-gray-600">/{rate}x/</span>
         <span className="text-sm text-gray-600">{formatTime(duration)}</span>
       </div>
 
@@ -69,12 +87,14 @@ const AudioControls: React.FC = ():JSX.Element => {
         className="w-full"
       />
 
-      <button
-        onClick={handlePlayPause}
-        className="p-2 bg-blue-600 text-white rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50 flex"
-      >
-        {isPlaying ? <PauseIcon /> : <PlayIcon />}
-      </button>
+<div className="flex justify-center">
+        <button
+          onClick={handlePlayPause}
+          className="p-2 bg-blue-600 text-white rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50 inline-flex items-center justify-center w-auto"
+        >
+          {isPlaying ? <PauseIcon /> : <PlayIcon />}
+        </button>
+      </div>
     </div>
   );
 };

@@ -28,7 +28,7 @@ def convert_audio(input_file,current_os):
         return
 
     try:
-        print(f'Using Switch for proprietary format conversoin')
+        print(f'Using Switch for proprietary format conversion')
         convert_with_switch(input_file,current_os)
         return 1
     except Exception as e:

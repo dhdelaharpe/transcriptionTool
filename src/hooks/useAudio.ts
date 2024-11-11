@@ -8,6 +8,7 @@ interface AudioState {
   duration: number;
   isLoaded: boolean;
   error: string | null;
+  rate: number;
 }
 /**
  * Hook that manages the audio playback and controls with Howler.js
@@ -23,6 +24,7 @@ export const useAudio = (audioUrl: string | null) => {
     duration: 0,
     isLoaded: false,
     error: null,
+    rate: 1,
   });
 
   // use ref for interval to prevent memory leaks
@@ -128,6 +130,7 @@ export const useAudio = (audioUrl: string | null) => {
         });
         soundRef.current = newSound;
         setSound(newSound);
+        setState((prev) => ({ ...prev, rate: 1 })); //? do we need this?
       } catch (error) {
         console.error("Error loading audio:", error);
         if (isMounted) {
@@ -172,6 +175,16 @@ export const useAudio = (audioUrl: string | null) => {
         cleanupInterval();
       }
     }, [sound, cleanupInterval]),
+    rate: useCallback(
+      (rate: number) => {
+        if (sound) {
+          const clampedRate = Math.max(0.5, Math.min(rate, 4)); //force max + min rates
+          sound.rate(clampedRate);
+          setState((prev) => ({ ...prev, rate: clampedRate })); //sync state with new rate
+        }
+      },
+      [sound]
+    ),
 
     seek: useCallback(
       (time: number) => {
