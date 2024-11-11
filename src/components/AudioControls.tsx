@@ -1,5 +1,5 @@
 import useAppStore from "@/store/useAppStore";
-import React, { memo, useEffect, useState, useCallback } from "react";
+import React, { memo, useEffect, useState, useCallback, useRef } from "react";
 import { updateWordHighlights } from "@/hooks/wordHighlights";
 import { useAudio } from "@/hooks/useAudio";
 import { useFootPedal } from "@/hooks/useFootPedal";
@@ -15,14 +15,12 @@ const formatTime = (seconds: number): string => {
  * @returns {JSX.Element}
  */
 const AudioControls: React.FC = (): JSX.Element => {
-  const [updateInterval, setUpdateInterval] = useState<
-    number | NodeJS.Timeout | null
-  >(null); // number+nodejstimeout for diff environments
   const editor = useAppStore((state) => state.editor);
   const { audioFile, transcriptionData } = useAppStore();
+  const [id, setId] = useState<number>(-1);
+  const idRef = useRef<number>(-1); // Add ref to track current ID
   const { rate, isPlaying, currentTime, duration, isLoaded, error, controls } =
     useAudio(audioFile);
-
 
   /**
    * Handles key events for the audio controls
@@ -39,21 +37,115 @@ const AudioControls: React.FC = (): JSX.Element => {
       }
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [rate, controls]);
 
   /**
    * Handles the play/pause button click
    */
-  const handlePlayPause = () => {
-    console.log('called', controls)
-    console.log(isLoaded);
+  const handlePlayPause = useCallback(() => {
+    if (!controls || !isLoaded) return;
+
+    console.log("PlayPause - Current state:", {
+      isPlaying,
+      id: idRef.current,
+      sound: controls,
+    });
+
     if (isPlaying) {
-      controls.pause();
+      controls.pause(idRef.current);
     } else {
-      controls.play();
+      if (idRef.current === -1) {
+        const newId = controls.play();
+        console.log("New audio instance created:", newId);
+        idRef.current = newId;
+        setId(newId);
+      } else {
+        console.log("Resuming existing audio:", idRef.current);
+        controls.play(idRef.current);
+      }
     }
-  };
+  }, [controls, isLoaded, isPlaying]);
+
+  const handleLeftPedal = useCallback((pressed: boolean) => {
+    if (!controls || !isLoaded || !pressed || idRef.current === -1) return;
+    
+    // Get current time directly from sound instance
+    const currentSeek = controls.getCurrentTime?.(idRef.current) || 0;
+    
+    console.log('Left pedal:', { 
+      pressed, 
+      currentId: idRef.current,
+      currentSeek,
+      hasControls: !!controls 
+    });
+    
+    const seekTo = Math.max(0, currentSeek - 5);
+    controls.seek(seekTo, idRef.current);
+  }, [controls, isLoaded]);
+
+  const handleRightPedal = useCallback((pressed: boolean) => {
+    if (!controls || !isLoaded || !pressed || idRef.current === -1) return;
+    
+    // Get current time and duration directly from sound instance
+    const currentSeek = controls.getCurrentTime?.(idRef.current) || 0;
+    const totalDuration = controls.getDuration?.() || 0;
+    
+    console.log('Right pedal:', { 
+      pressed, 
+      currentId: idRef.current,
+      currentSeek,
+      totalDuration,
+      hasControls: !!controls 
+    });
+    
+    const seekTo = Math.min(totalDuration, currentSeek + 5);
+    controls.seek(seekTo, idRef.current);
+  }, [controls, isLoaded]);
+
+  const handleMiddlePedal = useCallback(
+    (pressed: boolean) => {
+      console.log("Middle pedal:", {
+        pressed,
+        currentId: idRef.current,
+        hasControls: !!controls,
+      });
+
+      if (!controls || !isLoaded || !pressed) return;
+
+      //currently playing directly from the sound instance
+      const isCurrentlyPlaying = controls.isPlaying?.(idRef.current);
+      console.log("Current playing state:", isCurrentlyPlaying);
+
+      if (isCurrentlyPlaying) {
+        controls.pause(idRef.current);
+      } else {
+        controls.play(idRef.current);
+      }
+    },
+    [controls, isLoaded]
+  );
+
+  useEffect(() => {
+    //using this to immediately set id of audio instance
+    if (isLoaded && idRef.current === -1 && controls) {
+      const newId = controls.play();
+      idRef.current = newId;
+      setId(newId);
+      setTimeout(() => {
+        // wait for audio to play before pausing
+        controls.pause(newId);
+      }, 50);
+    }
+  }, [isLoaded, controls]);
+  useFootPedal({
+    onLeftPedal: handleLeftPedal,
+    onRightPedal: handleRightPedal,
+    onMiddlePedal: handleMiddlePedal,
+    enabled: isLoaded,
+  });
   /**
    * Updates the word highlights when the audio is playing
    */
@@ -70,9 +162,13 @@ const AudioControls: React.FC = (): JSX.Element => {
     controls.seek(parseFloat(e.target.value));
   };
   if (!audioFile || !isLoaded) return <></>;
+  // Use the foot pedal hook
 
   return (
-    <div className="flex flex-col gap-2 w-full max-w-xl mx-auto p-4 bg-gray-100 rounded-lg" data-audio-controls>
+    <div
+      className="flex flex-col gap-2 w-full max-w-xl mx-auto p-4 bg-gray-100 rounded-lg"
+      data-audio-controls
+    >
       {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
 
       <div className="flex items-center justify-between mb-2">
@@ -127,4 +223,4 @@ const PauseIcon = memo(() => (
 PlayIcon.displayName = "PlayIcon";
 PauseIcon.displayName = "PauseIcon";
 
-export default memo(AudioControls);
+export default AudioControls;

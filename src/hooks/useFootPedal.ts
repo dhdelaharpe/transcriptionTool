@@ -7,7 +7,6 @@ interface HIDFootPedalConfig {
   enabled?: boolean;
 }
 
-// Create a singleton connection state outside the hook
 let globalIsConnected = false;
 
 export const useFootPedal = ({
@@ -17,47 +16,52 @@ export const useFootPedal = ({
   enabled = true,
 }: HIDFootPedalConfig) => {
   const lastHIDEventTime = useRef<number>(0);
-  const lastState = useRef({ left: false, right: false, middle: false });
+  const isProcessing = useRef(false);
+  const lastStates = useRef({ left: false, right: false, middle: false });
 
   const handleHIDData = useCallback(
     (data: number[]) => {
-      if (!enabled) return;
+      if (!enabled || isProcessing.current) return;
 
-      console.log('Raw HID Data:', {
-        data,
-        hex: data.map(b => '0x' + b.toString(16).padStart(2, '0')).join(' ')
-      });
+      const now = Date.now();
+      if (now - lastHIDEventTime.current < 200) {
+        return;
+      }
 
-      // Update last HID event time
-      lastHIDEventTime.current = Date.now();
+      isProcessing.current = true;
+      lastHIDEventTime.current = now;
 
-      // The third byte (index 2) contains the button state
       const buttonState = data[2];
-      console.log('Button State:', buttonState);
+      
+      const rightPressed = (buttonState & 0x01) !== 0;
+      const middlePressed = (buttonState & 0x02) !== 0;
+      const leftPressed = (buttonState & 0x04) !== 0;
 
-      // Check button states
-      const  rightPressed= (buttonState & 0x01) !== 0;
-      const  middlePressed= (buttonState & 0x02) !== 0;
-      const  leftPressed= (buttonState & 0x04) !== 0;
+      if (leftPressed !== lastStates.current.left) {
+        onLeftPedal?.(leftPressed);
+        lastStates.current.left = leftPressed;
+      }
 
-      console.log('Pedal States:', { leftPressed, rightPressed, middlePressed });
+      if (middlePressed !== lastStates.current.middle) {
+        onMiddlePedal?.(middlePressed);
+        lastStates.current.middle = middlePressed;
+      }
 
-      if (onLeftPedal) onLeftPedal(leftPressed);
-      if (onRightPedal) onRightPedal(rightPressed);
-      if (onMiddlePedal) onMiddlePedal(middlePressed);
+      if (rightPressed !== lastStates.current.right) {
+        onRightPedal?.(rightPressed);
+        lastStates.current.right = rightPressed;
+      }
 
-      // Update last state
-      lastState.current = { left: leftPressed, right: rightPressed, middle: middlePressed };
+      setTimeout(() => {
+        isProcessing.current = false;
+      }, 200);
     },
     [enabled, onLeftPedal, onRightPedal, onMiddlePedal]
   );
 
-  // Prevent mouse events that occur immediately after HID events
   const handleMouseEvent = useCallback((event: MouseEvent) => {
     const timeSinceLastHID = Date.now() - lastHIDEventTime.current;
-
-    // If this mouse event occurred within 50ms of an HID event, it's from the footpedal
-    if (timeSinceLastHID < 50) {
+    if (timeSinceLastHID < 200) {
       event.preventDefault();
       event.stopPropagation();
       return false;
@@ -65,39 +69,35 @@ export const useFootPedal = ({
   }, []);
 
   useEffect(() => {
-    if (!enabled || globalIsConnected) return;
+    if (!enabled) return;
 
-    const connect = async () => {
-      try {
-        console.log('Attempting to connect to footpedal...');
-        const devices = await window.electron.hid.list();
-        console.log('Available HID devices:', devices);
-        
-        const footpedal = devices.find(d => 
-          d.vendorId === 1972 && 
-          d.productId === 607
-        );
-
-        if (footpedal && !globalIsConnected) {
-          console.log('Found footpedal, connecting...');
-          await window.electron.hid.connect(footpedal.vendorId, footpedal.productId);
-          console.log('Footpedal connected successfully');
-          globalIsConnected = true;
-        }
-      } catch (error) {
-        console.error('Failed to connect to footpedal:', error);
-      }
-    };
-
-    // Add event listeners to prevent mouse events
     const options = { capture: true, passive: false };
     window.addEventListener("mousedown", handleMouseEvent, options);
     window.addEventListener("mouseup", handleMouseEvent, options);
     window.addEventListener("click", handleMouseEvent, options);
     window.addEventListener("contextmenu", handleMouseEvent, options);
 
-    connect();
-    window.electron.hid.onData(handleHIDData);
+    const setupConnection = async () => {
+      if (globalIsConnected) return;
+
+      try {
+        const devices = await window.electron.hid.list();
+        const footpedal = devices.find(d => 
+          d.vendorId === 1972 && 
+          d.productId === 607
+        );
+
+        if (footpedal) {
+          await window.electron.hid.connect(footpedal.vendorId, footpedal.productId);
+          globalIsConnected = true;
+          window.electron.hid.onData(handleHIDData);
+        }
+      } catch (error) {
+        console.error('Failed to connect to footpedal:', error);
+      }
+    };
+
+    setupConnection();
 
     return () => {
       window.removeEventListener("mousedown", handleMouseEvent, options);
@@ -110,5 +110,5 @@ export const useFootPedal = ({
         globalIsConnected = false;
       }
     };
-  }, [enabled]);
+  }, [enabled, handleHIDData, handleMouseEvent]);
 };
