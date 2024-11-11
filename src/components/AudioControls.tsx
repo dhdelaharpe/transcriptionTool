@@ -18,7 +18,7 @@ const AudioControls: React.FC = (): JSX.Element => {
   const editor = useAppStore((state) => state.editor);
   const { audioFile, transcriptionData } = useAppStore();
   const [id, setId] = useState<number>(-1);
-  const idRef = useRef<number>(-1); // Add ref to track current ID
+  const idRef = useRef<number>(-1);
   const { rate, isPlaying, currentTime, duration, isLoaded, error, controls } =
     useAudio(audioFile);
 
@@ -69,64 +69,100 @@ const AudioControls: React.FC = (): JSX.Element => {
     }
   }, [controls, isLoaded, isPlaying]);
 
-  const handleLeftPedal = useCallback((pressed: boolean) => {
-    if (!controls || !isLoaded || !pressed || idRef.current === -1) return;
-    
-    // Get current time directly from sound instance
-    const currentSeek = controls.getCurrentTime?.(idRef.current) || 0;
-    
-    console.log('Left pedal:', { 
-      pressed, 
-      currentId: idRef.current,
-      currentSeek,
-      hasControls: !!controls 
-    });
-    
-    const seekTo = Math.max(0, currentSeek - 5);
-    controls.seek(seekTo, idRef.current);
-  }, [controls, isLoaded]);
+  const handleLeftPedal = useCallback(
+    (pressed: boolean) => {
+      if (!controls || !isLoaded || idRef.current === -1) return;
 
-  const handleRightPedal = useCallback((pressed: boolean) => {
-    if (!controls || !isLoaded || !pressed || idRef.current === -1) return;
-    
-    // Get current time and duration directly from sound instance
-    const currentSeek = controls.getCurrentTime?.(idRef.current) || 0;
-    const totalDuration = controls.getDuration?.() || 0;
-    
-    console.log('Right pedal:', { 
-      pressed, 
-      currentId: idRef.current,
-      currentSeek,
-      totalDuration,
-      hasControls: !!controls 
-    });
-    
-    const seekTo = Math.min(totalDuration, currentSeek + 5);
-    controls.seek(seekTo, idRef.current);
-  }, [controls, isLoaded]);
+      const currentSeek = controls.getCurrentTime?.(idRef.current) || 0;
+
+      console.log("Left pedal:", {
+        pressed,
+        currentId: idRef.current,
+        currentSeek,
+        hasControls: !!controls,
+      });
+
+      if (pressed) {
+        // start continuous seeking backward
+        const seekInterval = setInterval(() => {
+          const currentTime = controls.getCurrentTime?.(idRef.current) || 0;
+          const seekTo = Math.max(0, currentTime - 1);
+          controls.seek(seekTo, idRef.current);
+        }, 200);
+
+        // store interval ID for cleanup
+        (window as any).leftPedalInterval = seekInterval;
+      } else {
+        // clear interval on release
+        clearInterval((window as any).leftPedalInterval);
+      }
+    },
+    [controls, isLoaded]
+  );
+
+  const handleRightPedal = useCallback(
+    (pressed: boolean) => {
+      if (!controls || !isLoaded || idRef.current === -1) return;
+
+      const currentSeek = controls.getCurrentTime?.(idRef.current) || 0;
+      const totalDuration = controls.getDuration?.() || 0;
+
+      console.log("Right pedal:", {
+        pressed,
+        currentId: idRef.current,
+        currentSeek,
+        totalDuration,
+        hasControls: !!controls,
+      });
+
+      if (pressed) {
+        // start continuous seeking forward
+        const seekInterval = setInterval(() => {
+          const currentTime = controls.getCurrentTime?.(idRef.current) || 0;
+          const seekTo = Math.min(totalDuration, currentTime + 1);
+          controls.seek(seekTo, idRef.current);
+        }, 200);
+
+        (window as any).rightPedalInterval = seekInterval;
+      } else {
+        clearInterval((window as any).rightPedalInterval);
+      }
+    },
+    [controls, isLoaded]
+  );
 
   const handleMiddlePedal = useCallback(
     (pressed: boolean) => {
+      if (!controls || !isLoaded || idRef.current === -1) return;
+
       console.log("Middle pedal:", {
         pressed,
         currentId: idRef.current,
         hasControls: !!controls,
       });
 
-      if (!controls || !isLoaded || !pressed) return;
-
-      //currently playing directly from the sound instance
       const isCurrentlyPlaying = controls.isPlaying?.(idRef.current);
-      console.log("Current playing state:", isCurrentlyPlaying);
 
-      if (isCurrentlyPlaying) {
-        controls.pause(idRef.current);
+      if (pressed) {
+        if (!isCurrentlyPlaying) {
+          controls.play(idRef.current);
+        }
       } else {
-        controls.play(idRef.current);
+        if (isCurrentlyPlaying) {
+          controls.pause(idRef.current);
+        }
       }
     },
     [controls, isLoaded]
   );
+
+  // cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      clearInterval((window as any).leftPedalInterval);
+      clearInterval((window as any).rightPedalInterval);
+    };
+  }, []);
 
   useEffect(() => {
     //using this to immediately set id of audio instance
