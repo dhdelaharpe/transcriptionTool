@@ -39,8 +39,8 @@ const createWindow = (): void => {
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
       webSecurity: true,
-      // Add these permissions
-      nodeIntegration: false,
+      
+      nodeIntegration: true,
       contextIsolation: true,
     },
   });
@@ -65,6 +65,10 @@ const createWindow = (): void => {
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
 };
+
+
+
+
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

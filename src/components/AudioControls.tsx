@@ -1,7 +1,8 @@
 import useAppStore from "@/store/useAppStore";
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useState, useCallback } from "react";
 import { updateWordHighlights } from "@/hooks/wordHighlights";
-import { useAudio } from "@/hooks/useAudio"; 
+import { useAudio } from "@/hooks/useAudio";
+import { useFootPedal } from "@/hooks/useFootPedal";
 
 const formatTime = (seconds: number): string => {
   const minutes = Math.floor(seconds / 60);
@@ -13,37 +14,40 @@ const formatTime = (seconds: number): string => {
  * Component that renders the audio controls for the application
  * @returns {JSX.Element}
  */
-const AudioControls: React.FC = ():JSX.Element => {
+const AudioControls: React.FC = (): JSX.Element => {
   const [updateInterval, setUpdateInterval] = useState<
     number | NodeJS.Timeout | null
   >(null); // number+nodejstimeout for diff environments
   const editor = useAppStore((state) => state.editor);
   const { audioFile, transcriptionData } = useAppStore();
-  const {rate, isPlaying, currentTime, duration, isLoaded, error, controls } =
+  const { rate, isPlaying, currentTime, duration, isLoaded, error, controls } =
     useAudio(audioFile);
 
-/**
- * Handles key events for the audio controls
- */
+
+  /**
+   * Handles key events for the audio controls
+   */
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if(event.key==='F2'){
-        const newRate = rate+0.25;
+      if (event.key === "F2") {
+        const newRate = rate + 0.25;
         controls.rate(newRate);
-      }else if(event.key==='F1'){
-        const newRate = rate-0.25;
+      } else if (event.key === "F1") {
+        const newRate = rate - 0.25;
         controls.rate(newRate);
       }
-    }
-    window.addEventListener('keydown',handleKeyDown);
-    return () => window.removeEventListener('keydown',handleKeyDown);
-  },[rate,controls])
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [rate, controls]);
 
   /**
    * Handles the play/pause button click
    */
   const handlePlayPause = () => {
+    console.log('called', controls)
+    console.log(isLoaded);
     if (isPlaying) {
       controls.pause();
     } else {
@@ -65,11 +69,10 @@ const AudioControls: React.FC = ():JSX.Element => {
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     controls.seek(parseFloat(e.target.value));
   };
-
   if (!audioFile || !isLoaded) return <></>;
 
   return (
-    <div className="flex flex-col gap-2 w-full max-w-xl mx-auto p-4 bg-gray-100 rounded-lg">
+    <div className="flex flex-col gap-2 w-full max-w-xl mx-auto p-4 bg-gray-100 rounded-lg" data-audio-controls>
       {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
 
       <div className="flex items-center justify-between mb-2">
@@ -87,7 +90,7 @@ const AudioControls: React.FC = ():JSX.Element => {
         className="w-full"
       />
 
-<div className="flex justify-center">
+      <div className="flex justify-center">
         <button
           onClick={handlePlayPause}
           className="p-2 bg-blue-600 text-white rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50 inline-flex items-center justify-center w-auto"

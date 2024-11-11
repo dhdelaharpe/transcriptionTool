@@ -1,14 +1,11 @@
 import React, { useEffect, useState, useCallback } from "react";
 import useAppStore from "../store/useAppStore";
-
-import { selectTranscriptionData } from "@/store/selectors";
-import { processTranscriptionData } from "@/utils/transcriptionRenderer";
 interface ControlsProps {
   onExport: () => void; //potentially move transcribe and add as prop
 }
 /**
  * Controls component that provides UI elements for file handling, and transcription
- * @param {ControlsProps} props - 
+ * @param {ControlsProps} props -
  * @returns {JSX.Element}
  */
 const Controls = ({ onExport }: ControlsProps) => {
@@ -20,6 +17,7 @@ const Controls = ({ onExport }: ControlsProps) => {
   const setTranscriptionData = useAppStore(
     (state) => state.setTranscriptionData
   );
+
   /**
    * Handles the opening of a file dialog to select an audio file
    */
@@ -63,6 +61,7 @@ const Controls = ({ onExport }: ControlsProps) => {
       setIsTranscribed(false); // Reset on error
     }
   };
+
   useEffect(() => {
     // trigger on importPath to handle setting audiofile
     if (!isTranscribed && !importPath) return;
@@ -119,7 +118,6 @@ const Controls = ({ onExport }: ControlsProps) => {
       >
         Generate Transcript
       </button>
-
 
       <button
         onClick={onExport}

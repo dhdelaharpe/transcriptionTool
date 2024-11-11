@@ -21,4 +21,7 @@ export const mainConfig: Configuration = {
     },
     extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.json'],
   },
+  externals:{
+    'node-hid': 'commonjs node-hid'
+  },
 };

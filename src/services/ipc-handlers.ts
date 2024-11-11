@@ -2,6 +2,35 @@ import { ipcMain } from "electron";
 import { Services } from "./create-services";
 
 export const setupIpcHandlers = (services: Services) => {
+  ipcMain.handle("hid:list", async () => {
+    try {
+      const devices = await services.hidService.list();
+      return devices;
+    } catch (error) {
+      console.error("Error in hid:list handler:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("hid:connect", async (_, vendorId: number, productId: number) => {
+    try {
+      const success = await services.hidService.connect(vendorId, productId);
+      return success;
+    } catch (error) {
+      console.error("Error in hid:connect handler:", error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle("hid:disconnect", async () => {
+    try {
+      const success = await services.hidService.disconnect();
+      return success;
+    } catch (error) {
+      console.error("Error in hid:disconnect handler:", error);
+      throw error;
+    }
+  });
   ipcMain.handle("file:open-dialog", async (event, options) => {
     try {
       const filePaths = await services.fileService.openDialog(options);
@@ -69,5 +98,8 @@ export const setupIpcHandlers = (services: Services) => {
     ipcMain.removeHandler("transcription:cancel");
     ipcMain.removeHandler("transcription:status");
     ipcMain.removeHandler("file:copyToInputFiles");
+    ipcMain.removeHandler("hid:list");
+    ipcMain.removeHandler("hid:connect");
+    ipcMain.removeHandler("hid:disconnect");
   };
 };

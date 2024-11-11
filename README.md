@@ -14,6 +14,12 @@ The application allows importing an DS2 audio file, which then gets copied into 
 - includes basic editing features (undo, redo, text formatting, numbering etc) + a restore feature to return to last saved state (uses localstorage to save the editor state) -> TODO: reload the audio file upon restore. 
 - allows exporting the editor content as a DOCX file according to templates. 
 
+###Footpedal support
+- uses a custom HID device to send commands to the application.
+- ensure permissions are set for the device in the system settings.
+- [node-hid](https://github.com/node-hid/node-hid/blob/master/README.md#linux-notes) describes how to set this up.
+- device used for testing, sends mouse events which interfere with the user, a naive workaround in place, is to identify the device and disable mouse input in a small window when hid data is received from the device
+
 
 ## Installation
 

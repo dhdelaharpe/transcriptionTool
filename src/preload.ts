@@ -15,6 +15,16 @@ import type {
  * provides access to file, document, and transcription services
  */
 const electronBridge: ElectronBridge = {
+  hid: {
+    list: () => ipcRenderer.invoke('hid:list'),
+    connect: (vendorId: number, productId: number) => 
+      ipcRenderer.invoke('hid:connect', vendorId, productId),
+    disconnect: () => ipcRenderer.invoke('hid:disconnect'),
+    onData: (callback: (data: number[]) => void) => 
+      ipcRenderer.on('hid:data', (_, data) => callback(data)),
+    onError: (callback: (error: string) => void) => 
+      ipcRenderer.on('hid:error', (_, error) => callback(error)),
+  },
   file: {
     /**
      * Opens a file dialog to select files

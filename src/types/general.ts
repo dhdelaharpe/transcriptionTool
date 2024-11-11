@@ -1,3 +1,5 @@
+import { HIDDevice } from "electron";
+
 export interface TranscriptionOptions {
   filePath: string;
   confidence: number;
@@ -26,6 +28,13 @@ export interface FileDialogOptions {
 }
 
 export interface ElectronBridge {
+  hid: {
+    list: () => Promise<HIDDevice[]>;
+    connect: (vendorId: number, productId: number) => Promise<boolean>;
+    disconnect: () => Promise<boolean>;
+    onData: (callback: (data: number[]) => void) => void;
+    onError: (callback: (error: string) => void) => void;
+  };
   file: {
     openDialog: (options: FileDialogOptions) => Promise<string[]>;
     getAppPath: () => Promise<string>;
