@@ -52,6 +52,11 @@ The application allows importing an DS2 audio file, which then gets copied into 
 
    - After importing, click on the "Generate Transcript" button. The application will process the file using `whispercpp` and display the transcription in the editor.
 
+![Import and generation](https://github.com/user-attachments/assets/92364396-e475-4567-98a0-bfe157271852)
+![Follow along highlights](https://github.com/user-attachments/assets/47f17adf-4b8a-4839-94c9-37b522cfcf0d)
+![export](https://github.com/user-attachments/assets/e84956a8-f918-4a65-8472-f66fee37a7e4)
+
+
 
 
 ## Acknowledgements
