@@ -67,6 +67,12 @@ const processTextNode = (node: ContentNode): TextRun => {
     italics: node.marks?.some(
       (mark: { type: string }) => mark.type === "italic"
     ),
+    superScript: node.marks?.some(
+      (mark: {type:string})=> mark.type==="superscript"
+    ),
+    subScript: node.marks?.some(
+      (mark: {type:string})=> mark.type==="subscript"
+    ),
   });
 };
 
@@ -157,49 +163,6 @@ const processNode = (node: ContentNode, level: number = 0): Paragraph[] => {
       }
       return paragraphs;
 
-      /*
-      // find the first paragraph in the list item's content
-      const firstParagraph = node.content.find(
-        (child) => child.type === "paragraph"
-      );
-
-      if (firstParagraph && firstParagraph.content) {
-        // process the first paragraph's content with numbering
-        const textRuns = firstParagraph.content.map((child: ContentNode) => {
-          if (child.type === "text") {
-            return processTextNode(child);
-          }
-          return new TextRun({ text: "" });
-        });
-
-        // create the numbered paragraph
-        const numberedParagraph = new Paragraph({
-          children: textRuns,
-          numbering: {
-            reference: "ordered-list",
-            level: level,
-          },
-        });
-
-        // process any remaining content after the first paragraph
-        const remainingContent = node.content
-          .filter((child) => child !== firstParagraph)
-          .flatMap((child) => processNode(child, level));
-
-        return [numberedParagraph, ...remainingContent];
-      }
-
-      // fallback if no paragraph is found
-      return [
-        new Paragraph({
-          children: [new TextRun({ text: "" })],
-          numbering: {
-            reference: "ordered-list",
-            level: level,
-          },
-        }),
-      ];
-*/
     default:
       console.log(`Unknown node type: ${node.type}`);
       return [];
@@ -340,7 +303,7 @@ export const exportDocx = async (
   });
   try {
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `${template.replace(".docx", "")}_document.docx`);
+    saveAs(blob, `${template.replace(".docx", "")}.docx`);
     console.log("Saved");
   } catch (error) {
     console.error("Failed to export document:", error);

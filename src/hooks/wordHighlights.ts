@@ -24,11 +24,7 @@ export const updateWordHighlights = (currentTime: number, editor: any) => {
     if (!alreadyHighlighted) {
       //get the position of the first matching word
       const pos = editor.view.posAtDOM(cws[0], 0);
-      //set the selection to the first matching word
-      editor.commands.setTextSelection({
-        from: pos,
-        to: pos + cws[0].textContent.length,
-      });
+
       //add css highlights to the current word with class current-word
       cws.forEach((word) => {
         word.classList.add("current-word");

@@ -148,6 +148,12 @@ const Editor = ({ content = "", onChange, showConfidence }: EditorProps) => {
         >
           Redo
         </button>
+        <button
+          onClick={handleRestore}
+          className="px-4 py-2 bg-red-200 rounded hover:bg-red-300"
+        >
+          Restore
+        </button>
       </div>
       <div
         className={`border border-gray-200 rounded-md min-h-[400px] mt-5 ${
@@ -155,12 +161,7 @@ const Editor = ({ content = "", onChange, showConfidence }: EditorProps) => {
         }`}
       >
         <EditorContent editor={editor} className="prose max-w-none p-4" />
-        <button
-          onClick={handleRestore}
-          className="absolute top-12 right-12 mt-2 mr-2 px-4 py-2 bg-red-200 rounded hover:bg-red-300"
-        >
-          Restore
-        </button>
+
       </div>
     </div>
   );
