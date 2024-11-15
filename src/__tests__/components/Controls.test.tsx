@@ -30,6 +30,10 @@ global.window.electron = {
           throw new Error('Function not implemented.');
       }
   }, // Added missing 'document' property
+  //TODO: add hid routes
+  //hid:{
+    //list: ,
+  //}
   file: {
       openDialog: jest.fn().mockResolvedValue(['input_files/test.wav']),
       copyToInputFiles: jest.fn().mockResolvedValue('input_files/test.wav'),

@@ -25,28 +25,28 @@ export const createHidService = (mainWindow: BrowserWindow) => {
 
   const setupDeviceListeners = (device: AsyncHIDDevice) => {
     // Remove any existing listeners
-    if (dataHandler) device.removeListener('data', dataHandler);
-    if (errorHandler) device.removeListener('error', errorHandler);
+    if (dataHandler) device.removeListener("data", dataHandler);
+    if (errorHandler) device.removeListener("error", errorHandler);
 
     // Create new listeners
     dataHandler = (data: Buffer) => {
-      mainWindow.webContents.send('hid:data', Array.from(data));
+      mainWindow.webContents.send("hid:data", Array.from(data));
     };
 
     errorHandler = (error: Error) => {
-      console.error('Device error:', error);
-      mainWindow.webContents.send('hid:error', error.message);
+      console.error("Device error:", error);
+      mainWindow.webContents.send("hid:error", error.message);
     };
 
     // Attach new listeners
-    device.on('data', dataHandler);
-    device.on('error', errorHandler);
+    device.on("data", dataHandler);
+    device.on("error", errorHandler);
   };
 
   const cleanupDevice = async () => {
     if (currentDevice) {
-      if (dataHandler) currentDevice.removeListener('data', dataHandler);
-      if (errorHandler) currentDevice.removeListener('error', errorHandler);
+      if (dataHandler) currentDevice.removeListener("data", dataHandler);
+      if (errorHandler) currentDevice.removeListener("error", errorHandler);
       await currentDevice.close();
       currentDevice = null;
       dataHandler = null;
@@ -59,22 +59,19 @@ export const createHidService = (mainWindow: BrowserWindow) => {
    */
   const list = async (): Promise<HID.Device[]> => {
     try {
-      console.log('Listing HID devices...');
       const devices = await HID.devicesAsync();
-      console.log('Found devices:', devices);
-      
-      return devices.map(device => ({
+      return devices.map((device) => ({
         vendorId: device.vendorId,
         productId: device.productId,
         manufacturer: device.manufacturer,
         product: device.product,
-        release: device.release || 0, 
+        release: device.release || 0,
         path: device.path,
         serialNumber: device.serialNumber,
-        interface: device.interface
+        interface: device.interface,
       }));
     } catch (error) {
-      console.error('Error listing HID devices:', error);
+      console.error("Error listing HID devices:", error);
       throw createError(
         error instanceof Error
           ? error.message
@@ -91,34 +88,29 @@ export const createHidService = (mainWindow: BrowserWindow) => {
     productId: number
   ): Promise<boolean> => {
     try {
-      console.log(`Connecting to device: ${vendorId}:${productId}`);
-      
-      // Cleanup any existing connection
+      // cleanup any existing connection
       await cleanupDevice();
 
-      // Create new connection using async open
       const device = await HID.HIDAsync.open(vendorId, productId);
-      
-      // Verify device has required methods
-      if (!device || 
-          typeof device.close !== 'function' ||
-          typeof device.read !== 'function' ||
-          typeof device.write !== 'function' ||
-          typeof device.on !== 'function' ||
-          typeof device.removeListener !== 'function') {
-        throw new Error('Invalid HID device instance');
+
+      if (
+        !device ||
+        typeof device.close !== "function" ||
+        typeof device.read !== "function" ||
+        typeof device.write !== "function" ||
+        typeof device.on !== "function" ||
+        typeof device.removeListener !== "function"
+      ) {
+        throw new Error("Invalid HID device instance");
       }
 
       currentDevice = device;
-      
-      // Setup listeners only after successful connection
+
       setupDeviceListeners(currentDevice);
-      
-      console.log('Successfully connected to device');
       return true;
     } catch (error) {
       await cleanupDevice();
-      console.error('Error connecting to HID device:', error);
+      console.error("Error connecting to HID device:", error);
       throw createError(
         error instanceof Error
           ? error.message
@@ -132,11 +124,10 @@ export const createHidService = (mainWindow: BrowserWindow) => {
    */
   const disconnect = async (): Promise<boolean> => {
     try {
-      console.log('Disconnecting device');
       await cleanupDevice();
       return true;
     } catch (error) {
-      console.error('Error disconnecting HID device:', error);
+      console.error("Error disconnecting HID device:", error);
       throw createError(
         error instanceof Error
           ? error.message
@@ -146,15 +137,12 @@ export const createHidService = (mainWindow: BrowserWindow) => {
   };
 
   // Cleanup on window close
-  mainWindow.on('closed', () => {
-    cleanupDevice().catch(error => {
-      console.error('Error cleaning up device on window close:', error);
+  mainWindow.on("closed", () => {
+    cleanupDevice().catch((error) => {
+      console.error("Error cleaning up device on window close:", error);
     });
   });
 
-  // Initial debug log
-  console.log('HID Service created');
-  
   return {
     list,
     connect,

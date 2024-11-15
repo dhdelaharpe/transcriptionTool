@@ -36,7 +36,6 @@ const App = () => {
       return;
     }
     const content = editor.getJSON().content;
-    console.log(selectedTemplate);
     exportDocx(content as ContentNode[], selectedTemplate);
     setStatus({ type: "success", message: "Document Exported" });
   };

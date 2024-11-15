@@ -35,7 +35,6 @@ export const createTranscriptionService = (mainWindow: BrowserWindow) => {
       //start the transcription process
       return new Promise((resolve, reject) => {
         const decodePath = decodeURIComponent(filePath.replace("media://", ""));
-        console.log("Input file path:", decodePath);
 
         currentProcess = spawn(transcribePath, [decodePath, model]);
 

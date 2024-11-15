@@ -16,11 +16,9 @@ export const processTranscriptionData = (
   data: TranscriptionData,
   editor: any
 ): ConsolidatedWord[][] => {
-  console.log(data);
   if (!data.transcription || !Array.isArray(data.transcription)) {
     throw new Error("Invalid Transcription Data");
   }
-  console.log(data);
   //map over each segment
   const processedContent = data.transcription.map((segment) => {
     //split segment text into words and filter out empty strings

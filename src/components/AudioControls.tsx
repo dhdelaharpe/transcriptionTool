@@ -48,22 +48,14 @@ const AudioControls: React.FC = (): JSX.Element => {
   const handlePlayPause = useCallback(() => {
     if (!controls || !isLoaded) return;
 
-    console.log("PlayPause - Current state:", {
-      isPlaying,
-      id: idRef.current,
-      sound: controls,
-    });
-
     if (isPlaying) {
       controls.pause(idRef.current);
     } else {
       if (idRef.current === -1) {
         const newId = controls.play();
-        console.log("New audio instance created:", newId);
         idRef.current = newId;
         setId(newId);
       } else {
-        console.log("Resuming existing audio:", idRef.current);
         controls.play(idRef.current);
       }
     }
@@ -74,13 +66,6 @@ const AudioControls: React.FC = (): JSX.Element => {
       if (!controls || !isLoaded || idRef.current === -1) return;
 
       const currentSeek = controls.getCurrentTime?.(idRef.current) || 0;
-
-      console.log("Left pedal:", {
-        pressed,
-        currentId: idRef.current,
-        currentSeek,
-        hasControls: !!controls,
-      });
 
       if (pressed) {
         // start continuous seeking backward
@@ -107,14 +92,6 @@ const AudioControls: React.FC = (): JSX.Element => {
       const currentSeek = controls.getCurrentTime?.(idRef.current) || 0;
       const totalDuration = controls.getDuration?.() || 0;
 
-      console.log("Right pedal:", {
-        pressed,
-        currentId: idRef.current,
-        currentSeek,
-        totalDuration,
-        hasControls: !!controls,
-      });
-
       if (pressed) {
         // start continuous seeking forward
         const seekInterval = setInterval(() => {
@@ -134,12 +111,6 @@ const AudioControls: React.FC = (): JSX.Element => {
   const handleMiddlePedal = useCallback(
     (pressed: boolean) => {
       if (!controls || !isLoaded || idRef.current === -1) return;
-
-      console.log("Middle pedal:", {
-        pressed,
-        currentId: idRef.current,
-        hasControls: !!controls,
-      });
 
       const isCurrentlyPlaying = controls.isPlaying?.(idRef.current);
 

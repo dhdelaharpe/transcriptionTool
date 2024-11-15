@@ -65,9 +65,6 @@ const Controls = ({ onExport }: ControlsProps) => {
   useEffect(() => {
     // trigger on importPath to handle setting audiofile
     if (!isTranscribed && !importPath) return;
-    console.log("Transcription state updated:", isTranscribed);
-    console.log("Import path:", importPath);
-    console.log("Audio file:", audioFile);
     handleAudioLoad();
   }, [isTranscribed, importPath]);
 
@@ -85,7 +82,6 @@ const Controls = ({ onExport }: ControlsProps) => {
         const res = await fetch(finalPath);
         const data = await res.json();
         setTranscriptionData(data);
-        console.log(data);
       } catch (error) {
         console.error("Error in handleTranscribe:", error);
       }
@@ -96,7 +92,6 @@ const Controls = ({ onExport }: ControlsProps) => {
   const handleAudioLoad = async () => {
     if (importPath && isTranscribed) {
       setAudioFile(importPath);
-      console.log("audio file set");
     }
   };
 

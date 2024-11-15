@@ -42,7 +42,6 @@ export const useAudio = (audioUrl: string | null) => {
   //effect to load the audio file
   useEffect(() => {
     if (!audioUrl) {
-      console.log("No audio URL provided.");
       return;
     }
     //decode and convert the audio path
@@ -52,15 +51,11 @@ export const useAudio = (audioUrl: string | null) => {
       "output_files/$1.wav"
     );
     const finalPath = `media://${encodeURIComponent(convertedPath)}`;
-    //console.log("Loading audio from:", finalPath);
     let isMounted = true;
     //function to load the audio file
     const loadAudio = async () => {
       try {
-        console.log("Fetching audio from:", audioUrl);
         const response = await fetch(audioUrl);
-        console.log("Fetch response status:", response.status);
-
         if (!response.ok) {
           throw new Error(`Failed to fetch audio: ${response.statusText}`);
         }
@@ -74,8 +69,6 @@ export const useAudio = (audioUrl: string | null) => {
           format: ["wav"],
           onload: () => {
             const duration = newSound.duration();
-            console.log("Howler loaded audio. Duration:", duration);
-
             if (isNaN(duration) || duration === Infinity) {
               console.error("Invalid audio duration:", duration);
               setState((prev) => ({
@@ -84,7 +77,6 @@ export const useAudio = (audioUrl: string | null) => {
                 isLoaded: false,
               }));
             } else {
-              console.log("Audio loaded successfully.");
               setState((prev) => ({
                 ...prev,
                 duration: duration,
@@ -94,21 +86,20 @@ export const useAudio = (audioUrl: string | null) => {
             }
           },
           onplay: (playId) => {
-            console.log('Audio started playing:', playId);
             setState((prev) => ({ ...prev, isPlaying: true }));
             cleanupInterval();
             intervalRef.current = setInterval(() => {
-              if (newSound.playing(playId)) { 
+              if (newSound.playing(playId)) {
                 const currentTime = newSound.seek(playId);
                 setState((prev) => ({
                   ...prev,
-                  currentTime: typeof currentTime === "number" ? currentTime : 0,
+                  currentTime:
+                    typeof currentTime === "number" ? currentTime : 0,
                 }));
               }
             }, 250);
           },
           onpause: (pauseId) => {
-            console.log('Audio paused:', pauseId);
             setState((prev) => ({ ...prev, isPlaying: false }));
             cleanupInterval();
           },
@@ -166,7 +157,6 @@ export const useAudio = (audioUrl: string | null) => {
       (id?: number) => {
         if (sound?.state() === "loaded") {
           const playId = id ? sound.play(id) : sound.play();
-          console.log("Playing audio with ID:", playId);
           return playId;
         }
       },
@@ -175,12 +165,6 @@ export const useAudio = (audioUrl: string | null) => {
 
     pause: useCallback(
       (id?: number) => {
-        console.log(
-          "Pause called with ID:",
-          id,
-          "Playing:",
-          sound?.playing(id)
-        );
         if (sound && (id ? sound.playing(id) : sound.playing())) {
           sound.pause(id);
         }
@@ -204,32 +188,41 @@ export const useAudio = (audioUrl: string | null) => {
       },
       [sound]
     ),
-    isPlaying: useCallback((id?: number) => {
-      return sound ? sound.playing(id) : false;
-    }, [sound]),
-    getCurrentTime: useCallback((id?: number) => {
-      if (!sound) return 0;
-      return sound.seek(id);
-    }, [sound]),
+    isPlaying: useCallback(
+      (id?: number) => {
+        return sound ? sound.playing(id) : false;
+      },
+      [sound]
+    ),
+    getCurrentTime: useCallback(
+      (id?: number) => {
+        if (!sound) return 0;
+        return sound.seek(id);
+      },
+      [sound]
+    ),
 
     getDuration: useCallback(() => {
       if (!sound) return 0;
       return sound.duration();
     }, [sound]),
 
-    seek: useCallback((time: number, id?: number) => {
-      if (sound) {
-        if (id) {
-          sound.seek(time, id);
-        } else {
-          sound.seek(time);
+    seek: useCallback(
+      (time: number, id?: number) => {
+        if (sound) {
+          if (id) {
+            sound.seek(time, id);
+          } else {
+            sound.seek(time);
+          }
+          setState((prev) => ({
+            ...prev,
+            currentTime: time,
+          }));
         }
-        setState((prev) => ({
-          ...prev,
-          currentTime: time,
-        }));
-      }
-    }, [sound]),
+      },
+      [sound]
+    ),
   };
 
   /*// Debug effect
